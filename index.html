@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>F1 Predictions</title>
+<style>
+  :root {
+    --bg: #f5f6f8;
+    --card: #ffffff;
+    --text: #1a1d24;
+    --muted: #5a6170;
+    --border: #e2e5ea;
+    --accent: #e10600;
+    --fact-bg: #e7f5ea;
+    --fact-text: #1e7d34;
+    --inf-bg: #eaf1fc;
+    --inf-text: #1b5fbf;
+    --spec-bg: #fdf1e0;
+    --spec-text: #b5690a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14161b;
+      --card: #1d2027;
+      --text: #eceef2;
+      --muted: #9aa1b0;
+      --border: #2c303a;
+      --accent: #ff4136;
+      --fact-bg: #133620;
+      --fact-text: #6fd18a;
+      --inf-bg: #142a44;
+      --inf-text: #7cb0f5;
+      --spec-bg: #3a2a12;
+      --spec-text: #f0aa5a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14161b;
+    --card: #1d2027;
+    --text: #eceef2;
+    --muted: #9aa1b0;
+    --border: #2c303a;
+    --accent: #ff4136;
+    --fact-bg: #133620;
+    --fact-text: #6fd18a;
+    --inf-bg: #142a44;
+    --inf-text: #7cb0f5;
+    --spec-bg: #3a2a12;
+    --spec-text: #f0aa5a;
+  }
+  :root[data-theme="light"] {
+    --bg: #f5f6f8;
+    --card: #ffffff;
+    --text: #1a1d24;
+    --muted: #5a6170;
+    --border: #e2e5ea;
+    --accent: #e10600;
+    --fact-bg: #e7f5ea;
+    --fact-text: #1e7d34;
+    --inf-bg: #eaf1fc;
+    --inf-text: #1b5fbf;
+    --spec-bg: #fdf1e0;
+    --spec-text: #b5690a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+  }
+  .wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 1.25rem 1rem 3rem;
+  }
+  header.page {
+    padding: 1rem 0 0.5rem;
+  }
+  header.page h1 {
+    font-size: 1.4rem;
+    margin: 0 0 0.25rem;
+  }
+  header.page p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  .race {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.25rem;
+    margin: 1.25rem 0;
+  }
+  .race-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.85rem;
+    margin-bottom: 1rem;
+  }
+  .race-head h2 {
+    margin: 0;
+    font-size: 1.25rem;
+  }
+  .race-head .round {
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.5rem 1rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 1.1rem;
+  }
+  .meta-grid strong { color: var(--text); }
+  h3.section {
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    margin: 1.4rem 0 0.6rem;
+  }
+  ol.top5 { list-style: none; margin: 0; padding: 0; }
+  .pick {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px dashed var(--border);
+  }
+  .pick:last-child { border-bottom: none; }
+  .pick .pos {
+    flex: 0 0 auto;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+  .pick .body { flex: 1; min-width: 0; }
+  .pick .name-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.4rem;
+    margin-bottom: 0.3rem;
+  }
+  .pick .name { font-weight: 700; font-size: 1rem; }
+  .pick .team { color: var(--muted); font-size: 0.85rem; }
+  .pick .prob {
+    margin-left: auto;
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 0.9rem;
+  }
+  .factors { margin: 0; padding: 0; list-style: none; }
+  .factors li {
+    font-size: 0.85rem;
+    margin: 0.3rem 0;
+    padding-left: 0;
+  }
+  .tag {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    padding: 0.1rem 0.4rem;
+    border-radius: 5px;
+    margin-right: 0.4rem;
+    vertical-align: middle;
+  }
+  .tag.fact { background: var(--fact-bg); color: var(--fact-text); }
+  .tag.inference { background: var(--inf-bg); color: var(--inf-text); }
+  .tag.speculation { background: var(--spec-bg); color: var(--spec-text); }
+  .callout {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.75rem 0.9rem;
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+  }
+  .callout .label {
+    font-weight: 700;
+    display: block;
+    margin-bottom: 0.2rem;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    color: var(--muted);
+    letter-spacing: 0.03em;
+  }
+  .wildcards { display: grid; gap: 0.6rem; }
+  .wildcard {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.75rem 0.9rem;
+  }
+  .wildcard .name { font-weight: 700; font-size: 0.92rem; }
+  .wildcard ul { margin: 0.4rem 0 0; padding-left: 1.1rem; font-size: 0.85rem; }
+  .confidence {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.9rem;
+  }
+  .confidence .badge {
+    font-weight: 700;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    background: var(--inf-bg);
+    color: var(--inf-text);
+    font-size: 0.8rem;
+  }
+  .sources {
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  .sources a { color: var(--inf-text); text-decoration: none; }
+  .sources a:hover { text-decoration: underline; }
+  .sources ul { margin: 0.4rem 0 0; padding-left: 1.1rem; }
+  footer.gen {
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 1rem;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="page">
+    <h1>🏁 F1 Race Predictions</h1>
+    <p>AI-generated pre-race analysis. Predictions, not certainties — read the FACT / INFERENCE / SPECULATION tags.</p>
+  </header>
+
+  <article class="race">
+    <div class="race-head">
+      <h2>2026 Belgian Grand Prix</h2>
+      <span class="round">Round 10 · Spa-Francorchamps</span>
+    </div>
+
+    <div class="meta-grid">
+      <div><strong>Circuit</strong><br>Circuit de Spa-Francorchamps, Belgium</div>
+      <div><strong>Race start</strong><br>Sun 19 Jul 2026, 13:00 UTC</div>
+      <div><strong>Generated</strong><br>Sun 19 Jul 2026, ~07:45 UTC (pre-race)</div>
+      <div><strong>Race distance</strong><br>44 laps · 308.054 km</div>
+    </div>
+
+    <h3 class="section">Top 5 Finish Order</h3>
+    <ol class="top5">
+      <li class="pick">
+        <div class="pos">1</div>
+        <div class="body">
+          <div class="name-row">
+            <span class="name">Kimi Antonelli</span>
+            <span class="team">Mercedes · P1 grid</span>
+            <span class="prob">~32%</span>
+          </div>
+          <ul class="factors">
+            <li><span class="tag fact">FACT</span>Took pole by 0.317s over Verstappen, was fastest across every practice session, and leads the championship on 179 points.</li>
+            <li><span class="tag fact">FACT</span>His side of the Mercedes garage is not affected by the straight-line speed deficit troubling teammate Russell.</li>
+            <li><span class="tag inference">INFERENCE</span>Clean air from pole plus the clearest pace advantage of the weekend makes him the strongest favourite to convert quali form into a win, especially on the long run to Turn 5.</li>
+          </ul>
+        </div>
+      </li>
+      <li class="pick">
+        <div class="pos">2</div>
+        <div class="body">
+          <div class="name-row">
+            <span class="name">Max Verstappen</span>
+            <span class="team">Red Bull · P2 grid</span>
+            <span class="prob">~24%</span>
+          </div>
+          <ul class="factors">
+            <li><span class="tag fact">FACT</span>Qualified P2, but said the lap relied on a ~0.3s tow from teammate Hadjar — without it he estimated "P6 or something."</li>
+            <li><span class="tag fact">FACT</span>Red Bull deliberately sacrificed Hadjar's entire grid position (P21) purely to set up Verstappen's tow.</li>
+            <li><span class="tag inference">INFERENCE</span>The underlying pace deficit to Antonelli may resurface without a tow partner in the race, but Verstappen's start/race execution keeps him the clearest threat to Antonelli for the win.</li>
+          </ul>
+        </div>
+      </li>
+      <li class="pick">
+        <div class="pos">3</div>
+        <div class="body">
+          <div class="name-row">
+            <span class="name">George Russell</span>
+            <span class="team">Mercedes · P3 grid*</span>
+            <span class="prob">~15%</span>
+          </div>
+          <ul class="factors">
+            <li><span class="tag fact">FACT</span>Qualified P4, promoted to P3 by Norris's grid penalty; describes a "serious," unexplained straight-line deficit of 0.2–0.6s/lap he called "infuriating."</li>
+            <li><span class="tag fact">FACT</span>Mercedes says the deployment issue should be less pronounced in race trim than qualifying trim.</li>
+            <li><span class="tag inference">INFERENCE</span>Even partly resolved, the deficit likely leaves him defending position rather than challenging Antonelli/Verstappen for the win.</li>
+          </ul>
+        </div>
+      </li>
+      <li class="pick">
+        <div class="pos">4</div>
+        <div class="body">
+          <div class="name-row">
+            <span class="name">Charles Leclerc</span>
+            <span class="team">Ferrari · P4 grid*</span>
+            <span class="prob">~12%</span>
+          </div>
+          <ul class="factors">
+            <li><span class="tag fact">FACT</span>Winner of the last round at Silverstone; starts P4 on the adjusted grid after a late yellow-flag lift cost him a shot at the front row.</li>
+            <li><span class="tag inference">INFERENCE</span>Ferrari's recent race-day execution suggests they can hang with Mercedes/Red Bull over a one-stop race, though Spa hasn't been Ferrari's strongest circuit in 2026.</li>
+          </ul>
+        </div>
+      </li>
+      <li class="pick">
+        <div class="pos">5</div>
+        <div class="body">
+          <div class="name-row">
+            <span class="name">Lewis Hamilton</span>
+            <span class="team">Ferrari · P5 grid*</span>
+            <span class="prob">~8%</span>
+          </div>
+          <ul class="factors">
+            <li><span class="tag fact">FACT</span>Crashed heavily in FP3 (barrier contact, damaged rear-left) but the team repaired the car in time; qualified just 0.002s behind Leclerc.</li>
+            <li><span class="tag inference">INFERENCE</span>The rushed FP3 repair likely cost him race-relevant long-run data, adding downside risk to an otherwise razor-tight qualifying gap to his teammate.</li>
+          </ul>
+        </div>
+      </li>
+    </ol>
+    <p style="font-size:0.75rem;color:var(--muted);margin-top:0.5rem;">*Grid positions reflect the adjusted starting order after grid penalties for Norris (-10), Stroll (-10), Alonso (back of grid) and Hadjar (back of grid) were applied.</p>
+
+    <h3 class="section">Last Classified Finisher (excl. DNF/DNS)</h3>
+    <div class="callout">
+      <span class="label">Call</span>
+      <strong>Fernando Alonso (Aston Martin)</strong> —
+      <span class="tag fact">FACT</span>starts dead last, P22, after a back-of-grid penalty for power unit changes; Aston Martin has scored just 1 point all season (Alonso's) with Stroll on 0.
+      <span class="tag inference">INFERENCE</span>Starting position matters heavily at Spa for overtaking through the full order, and Aston Martin's pace has been the weakest on the grid in 2026 — making Alonso the most likely to be classified last if he finishes the race.
+    </div>
+
+    <h3 class="section">Liam Lawson's Finish</h3>
+    <div class="callout">
+      <span class="label">Best call: P9 · Range: P6–P12</span>
+      <span class="tag fact">FACT</span>Qualified P11, promoted to P9 on the adjusted grid via the Norris and Hadjar penalties; chasing a sixth straight points finish for Racing Bulls.
+      <span class="tag inference">INFERENCE</span>A points finish is the realistic target from P9 on a car that's been consistently midfield-competitive, with upside into the top 6 if the multiple penalised cars behind him (Hadjar, Alonso, Stroll) create early chaos he can benefit from.
+    </div>
+
+    <h3 class="section">Wildcards</h3>
+    <div class="wildcards">
+      <div class="wildcard">
+        <div class="name">Lando Norris (McLaren) — starts P13</div>
+        <ul>
+          <li><span class="tag fact">FACT</span>Fastest or near-fastest in every practice session and Q1 this weekend, but starts P13 due to a 10-place power unit penalty.</li>
+          <li><span class="tag speculation">SPECULATION</span>If McLaren's underlying one-lap and race pace hold up, a charge into the podium picture — or even a long-shot win — is plausible on a track that rewards straight-line speed and this year's high-overtaking energy-deployment racing.</li>
+        </ul>
+      </div>
+      <div class="wildcard">
+        <div class="name">Arvid Lindblad (Racing Bulls) — starts P7</div>
+        <ul>
+          <li><span class="tag fact">FACT</span>Reached Q3 for the third straight race weekend in an upgraded car unique to his side of the garage.</li>
+          <li><span class="tag speculation">SPECULATION</span>A maiden podium is a stretch, but a strong points haul — possibly his best result of the season — is realistic if he holds position through the first-lap scramble.</li>
+        </ul>
+      </div>
+      <div class="wildcard">
+        <div class="name">Isack Hadjar (Red Bull) — starts P21</div>
+        <ul>
+          <li><span class="tag fact">FACT</span>Took a 30-place grid penalty and deliberately used his qualifying lap to tow Verstappen rather than set his own time.</li>
+          <li><span class="tag speculation">SPECULATION</span>With a genuinely fast Red Bull under him and little left to sacrifice, a surprise points finish carving through a compromised back third of the grid (also containing Alonso and Stroll) is possible.</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3 class="section">Confidence</h3>
+    <div class="confidence">
+      <span class="badge">Medium</span>
+      <span>High confidence in Antonelli as the favourite from a clear pole and pace edge; lower confidence beyond P3 given tight qualifying gaps, Russell's unresolved technical issue, Hamilton's crash-compromised setup, and conflicting race-day rain forecasts (10–75% chance depending on source) at a famously changeable circuit.</span>
+    </div>
+
+    <h3 class="section">Sources</h3>
+    <div class="sources">
+      <ul>
+        <li><a href="https://www.formula1.com/en/latest/article/antonelli-charges-to-pole-position-in-exhilarating-belgian-gp-qualifying.zpGgC6xi6e3QnZEOmi6qS" target="_blank" rel="noopener">Formula1.com — Qualifying report</a></li>
+        <li><a href="https://www.the-race.com/formula-1/f1-2026-belgian-gp-starting-grid-after-four-grid-penalties/" target="_blank" rel="noopener">The Race — Adjusted starting grid after penalties</a></li>
+        <li><a href="https://www.bbc.com/sport/formula1/articles/clyq6q12dkko" target="_blank" rel="noopener">BBC Sport — Russell's straight-line speed issue</a></li>
+        <li><a href="https://www.motorsportweek.com/2026/07/18/lewis-hamilton-suffers-major-shunt-as-antonelli-dominates-fp3-at-spa/" target="_blank" rel="noopener">Motorsport Week — Hamilton's FP3 crash</a></li>
+        <li><a href="https://thef1db.com/seasons/2026/standings" target="_blank" rel="noopener">TheF1DB — Standings after Round 9 (British GP)</a></li>
+        <li><a href="https://www.planetf1.com/news/belgian-grand-prix-2026-weather-forecast" target="_blank" rel="noopener">PlanetF1 — Weather forecast</a></li>
+        <li><a href="https://www.formula1.com/en/latest/article/what-the-teams-said-qualifying-in-belgium-2026.2zTZf4gN1Db4YuqMTTMZhO" target="_blank" rel="noopener">Formula1.com — What the teams said</a></li>
+      </ul>
+    </div>
+  </article>
+
+  <footer class="gen">Generated by an automated prediction routine · not affiliated with Formula 1, FIA, or any team.</footer>
+</div>
+</body>
+</html>

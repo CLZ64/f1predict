@@ -18,6 +18,8 @@
     --inf-text: #1b5fbf;
     --spec-bg: #fdf1e0;
     --spec-text: #b5690a;
+    --miss-bg: #fdeaea;
+    --miss-text: #b3261e;
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -33,6 +35,8 @@
       --inf-text: #7cb0f5;
       --spec-bg: #3a2a12;
       --spec-text: #f0aa5a;
+      --miss-bg: #3d1a18;
+      --miss-text: #f2867c;
     }
   }
   :root[data-theme="dark"] {
@@ -48,6 +52,8 @@
     --inf-text: #7cb0f5;
     --spec-bg: #3a2a12;
     --spec-text: #f0aa5a;
+    --miss-bg: #3d1a18;
+    --miss-text: #f2867c;
   }
   :root[data-theme="light"] {
     --bg: #f5f6f8;
@@ -62,6 +68,8 @@
     --inf-text: #1b5fbf;
     --spec-bg: #fdf1e0;
     --spec-text: #b5690a;
+    --miss-bg: #fdeaea;
+    --miss-text: #b3261e;
   }
   * { box-sizing: border-box; }
   body {
@@ -241,6 +249,87 @@
     text-align: center;
     margin-top: 1rem;
   }
+
+  /* --- post-race results & accuracy --- */
+  .record {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.1rem 1.25rem;
+    margin: 1.25rem 0;
+  }
+  .record h2 { margin: 0 0 0.15rem; font-size: 1.05rem; }
+  .record .sub { margin: 0 0 0.9rem; color: var(--muted); font-size: 0.8rem; }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(122px, 1fr));
+    gap: 0.6rem;
+  }
+  .stat {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.6rem 0.7rem;
+  }
+  .stat .v { font-size: 1.3rem; font-weight: 700; line-height: 1.15; }
+  .stat .k {
+    font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.03em;
+    color: var(--muted); margin-top: 0.15rem;
+  }
+  .stat .n { font-size: 0.7rem; color: var(--muted); margin-top: 0.1rem; }
+  .caveat {
+    margin: 0.9rem 0 0;
+    font-size: 0.78rem;
+    color: var(--spec-text);
+    background: var(--spec-bg);
+    border-radius: 8px;
+    padding: 0.5rem 0.7rem;
+  }
+  .table-scroll { overflow-x: auto; }
+  .compare { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+  .compare th {
+    text-align: left;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--muted);
+    font-weight: 700;
+    padding: 0 0.5rem 0.4rem;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  .compare td { padding: 0.45rem 0.5rem; border-bottom: 1px dashed var(--border); }
+  .compare tr:last-child td { border-bottom: none; }
+  .compare .p { width: 2.2rem; color: var(--muted); font-weight: 700; }
+  .verdict {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    padding: 0.1rem 0.4rem;
+    border-radius: 5px;
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+  .verdict.hit { background: var(--fact-bg); color: var(--fact-text); }
+  .verdict.miss { background: var(--miss-bg); color: var(--miss-text); }
+  .verdict.near { background: var(--spec-bg); color: var(--spec-text); }
+  .pick .outcome { margin-left: 0.1rem; }
+  .sidecalls { margin: 0.4rem 0 0; padding: 0; list-style: none; font-size: 0.85rem; }
+  .sidecalls li {
+    padding: 0.45rem 0;
+    border-bottom: 1px dashed var(--border);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    align-items: baseline;
+  }
+  .sidecalls li:last-child { border-bottom: none; }
+  .sidecalls .lbl { font-weight: 700; }
+  .sidecalls .detail { color: var(--muted); }
+  .pending { color: var(--muted); font-size: 0.85rem; font-style: italic; }
+  .pending a { color: var(--inf-text); text-decoration: none; }
+  .pending a:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -250,7 +339,14 @@
     <p>AI-generated pre-race analysis. Predictions, not certainties — read the FACT / INFERENCE / SPECULATION tags.</p>
   </header>
 
-  <article class="race">
+  <section class="record" id="track-record" hidden>
+    <h2>📊 Track record</h2>
+    <p class="sub" id="record-sub"></p>
+    <div class="stats" id="record-stats"></div>
+    <p class="caveat" id="record-caveat" hidden></p>
+  </section>
+
+  <article class="race" data-race="2026-10">
     <div class="race-head">
       <h2>2026 Belgian Grand Prix</h2>
       <span class="round">Round 10 · Spa-Francorchamps</span>
@@ -263,9 +359,11 @@
       <div><strong>Race distance</strong><br>44 laps · 308.054 km</div>
     </div>
 
+    <section class="race-result" data-result-for="2026-10"></section>
+
     <h3 class="section">Top 5 Finish Order</h3>
     <ol class="top5">
-      <li class="pick">
+      <li class="pick" data-code="ANT">
         <div class="pos">1</div>
         <div class="body">
           <div class="name-row">
@@ -280,7 +378,7 @@
           </ul>
         </div>
       </li>
-      <li class="pick">
+      <li class="pick" data-code="VER">
         <div class="pos">2</div>
         <div class="body">
           <div class="name-row">
@@ -295,7 +393,7 @@
           </ul>
         </div>
       </li>
-      <li class="pick">
+      <li class="pick" data-code="RUS">
         <div class="pos">3</div>
         <div class="body">
           <div class="name-row">
@@ -310,7 +408,7 @@
           </ul>
         </div>
       </li>
-      <li class="pick">
+      <li class="pick" data-code="LEC">
         <div class="pos">4</div>
         <div class="body">
           <div class="name-row">
@@ -324,7 +422,7 @@
           </ul>
         </div>
       </li>
-      <li class="pick">
+      <li class="pick" data-code="HAM">
         <div class="pos">5</div>
         <div class="body">
           <div class="name-row">
@@ -403,5 +501,210 @@
 
   <footer class="gen">Generated by an automated prediction routine · not affiliated with Formula 1, FIA, or any team.</footer>
 </div>
+
+<!--
+  Machine-readable prediction + result ledger.
+  The prediction routine appends one object per race here.
+
+  Pre-race:  fill everything except "result" (leave it null).
+  Post-race: set "result" from the official classification.
+             Scores and the track record are computed from this data at load —
+             never hand-write a score, or the record stops being trustworthy.
+-->
+<script id="race-data" type="application/json">
+{
+  "drivers": {
+    "ANT": "Antonelli", "VER": "Verstappen", "RUS": "Russell", "LEC": "Leclerc",
+    "HAM": "Hamilton", "PIA": "Piastri", "NOR": "Norris", "HAD": "Hadjar",
+    "LIN": "Lindblad", "LAW": "Lawson", "ALO": "Alonso", "STR": "Stroll",
+    "BOR": "Bortoleto", "COL": "Colapinto", "GAS": "Gasly", "HUL": "Hülkenberg",
+    "BEA": "Bearman", "ALB": "Albon", "SAI": "Sainz", "OCO": "Ocon",
+    "BOT": "Bottas", "PER": "Pérez"
+  },
+  "races": [
+    {
+      "id": "2026-10",
+      "season": 2026,
+      "round": 10,
+      "event": "Belgian Grand Prix",
+      "date": "2026-07-19",
+      "predicted": ["ANT", "VER", "RUS", "LEC", "HAM"],
+      "probs": { "ANT": 0.32, "VER": 0.24, "RUS": 0.15, "LEC": 0.12, "HAM": 0.08 },
+      "result": {
+        "source": "https://api.jolpi.ca/ergast/f1/2026/10/results/",
+        "retrieved": "2026-07-20",
+        "classification": [
+          ["1", "ANT"], ["2", "LEC"], ["3", "VER"], ["4", "HAM"], ["5", "PIA"],
+          ["6", "HAD"], ["7", "NOR"], ["8", "BOR"], ["9", "LIN"], ["10", "COL"],
+          ["11", "GAS"], ["12", "LAW"], ["13", "HUL"], ["14", "BEA"], ["15", "ALB"],
+          ["16", "SAI"], ["17", "OCO"], ["18", "BOT"], ["19", "ALO"],
+          ["R", "STR"], ["R", "PER"], ["R", "RUS"]
+        ],
+        "sideCalls": [
+          { "label": "Last classified finisher", "call": "Alonso", "actual": "Alonso, P19", "verdict": "hit" },
+          { "label": "Lawson finish", "call": "P9 (range P6–P12)", "actual": "P12 — inside range, 3 off the call", "verdict": "near" },
+          { "label": "Wildcard: Hadjar points from P21", "call": "Surprise points finish", "actual": "P6 — 8 points", "verdict": "hit" },
+          { "label": "Wildcard: Norris podium charge from P13", "call": "Podium picture, long-shot win", "actual": "P7 — recovered 6 places, no podium", "verdict": "near" },
+          { "label": "Wildcard: Lindblad strong points haul", "call": "Best result of season", "actual": "P9 — 2 points, not a season best", "verdict": "near" }
+        ],
+        "postMortem": "Winner call was right and right for the right reasons — Antonelli's pace edge held from pole. The miss was Russell: the straight-line deficit we flagged as a FACT was treated as a podium-limiting handicap when it was closer to a reliability warning, and he retired. Leclerc was underrated at P4; Ferrari's race pace at Spa was better than the INFERENCE allowed. Hadjar from P21 to P6 was the best call on the page."
+      }
+    }
+  ]
+}
+</script>
+
+<script>
+(function () {
+  var data = JSON.parse(document.getElementById('race-data').textContent);
+  var NAMES = data.drivers || {};
+  var name = function (code) { return NAMES[code] || code; };
+
+  // --- scoring -------------------------------------------------------------
+  // Every number on the page comes from here. Nothing is hand-written.
+  function positions(race) {
+    var map = {};
+    race.result.classification.forEach(function (row) { map[row[1]] = row[0]; });
+    return map;
+  }
+
+  function finishOrder(race) {
+    return race.result.classification
+      .filter(function (r) { return /^\d+$/.test(r[0]); })
+      .sort(function (a, b) { return +a[0] - +b[0]; })
+      .map(function (r) { return r[1]; });
+  }
+
+  function score(race) {
+    var actual = finishOrder(race);
+    var pred = race.predicted;
+    var inter = function (a, b) {
+      return a.filter(function (d) { return b.indexOf(d) !== -1; }).length;
+    };
+    var exact = pred.filter(function (d, i) { return actual[i] === d; }).length;
+
+    // Brier: mean squared error over every probability we published.
+    // Only this metric punishes being confidently wrong, so it is the headline.
+    var winner = actual[0], sum = 0, n = 0;
+    Object.keys(race.probs).forEach(function (code) {
+      var o = code === winner ? 1 : 0;
+      sum += Math.pow(race.probs[code] - o, 2);
+      n++;
+    });
+
+    return {
+      actual: actual,
+      winnerHit: pred[0] === winner,
+      podiumHits: inter(pred.slice(0, 3), actual.slice(0, 3)),
+      podiumExact: pred.slice(0, 3).every(function (d, i) { return actual[i] === d; }),
+      top5Hits: inter(pred.slice(0, 5), actual.slice(0, 5)),
+      exactPositions: exact,
+      brier: n ? sum / n : null
+    };
+  }
+
+  var graded = data.races.filter(function (r) { return r.result; });
+  var scored = graded.map(function (r) { return { race: r, s: score(r) }; });
+
+  var el = function (tag, cls, html) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (html != null) e.innerHTML = html;
+    return e;
+  };
+  var stat = function (value, label, note) {
+    return '<div class="stat"><div class="v">' + value + '</div><div class="k">' + label +
+      '</div>' + (note ? '<div class="n">' + note + '</div>' : '') + '</div>';
+  };
+  var badge = function (verdict, text) {
+    return '<span class="verdict ' + verdict + '">' + text + '</span>';
+  };
+
+  // --- per-race result section --------------------------------------------
+  scored.forEach(function (item) {
+    var race = item.race, s = item.s;
+    var host = document.querySelector('[data-result-for="' + race.id + '"]');
+    if (!host) return;
+
+    var rows = '';
+    for (var i = 0; i < Math.max(race.predicted.length, 5); i++) {
+      var p = race.predicted[i], a = s.actual[i];
+      var hit = p && a && p === a;
+      rows += '<tr><td class="p">P' + (i + 1) + '</td><td>' + (p ? name(p) : '—') +
+        '</td><td>' + (a ? name(a) : '—') + ' ' +
+        (hit ? badge('hit', 'exact') : '') + '</td></tr>';
+    }
+
+    var sideRows = (race.result.sideCalls || []).map(function (c) {
+      var word = c.verdict === 'hit' ? 'hit' : c.verdict === 'near' ? 'partial' : 'miss';
+      return '<li>' + badge(c.verdict, word) + '<span class="lbl">' + c.label +
+        '</span><span class="detail">' + c.actual + '</span></li>';
+    }).join('');
+
+    host.innerHTML =
+      '<h3 class="section">Race Result &amp; Scorecard</h3>' +
+      '<div class="stats">' +
+        stat(s.winnerHit ? '✓' : '✗', 'Winner', s.winnerHit ? name(s.actual[0]) : 'called ' + name(race.predicted[0])) +
+        stat(s.podiumHits + '/3', 'Podium', s.podiumExact ? 'exact order' : 'order missed') +
+        stat(s.top5Hits + '/5', 'Top 5 drivers', 'set overlap') +
+        stat(s.exactPositions + '/5', 'Exact positions', 'right driver, right slot') +
+        stat(s.brier.toFixed(3), 'Brier score', 'lower is better') +
+      '</div>' +
+      '<div class="table-scroll" style="margin-top:1rem"><table class="compare">' +
+        '<thead><tr><th>Pos</th><th>Predicted</th><th>Actual</th></tr></thead>' +
+        '<tbody>' + rows + '</tbody></table></div>' +
+      (sideRows ? '<h3 class="section">Side calls &amp; wildcards</h3><ul class="sidecalls">' + sideRows + '</ul>' : '') +
+      (race.result.postMortem ? '<h3 class="section">Post mortem</h3><div class="callout">' + race.result.postMortem + '</div>' : '') +
+      '<p class="pending" style="margin-top:0.75rem">Official classification retrieved ' +
+        race.result.retrieved + ' from <a href="' + race.result.source +
+        '" target="_blank" rel="noopener">Jolpica/Ergast</a>. ' +
+        'Side calls and wildcards are reported but not folded into the scores above.</p>';
+
+    // Annotate the original picks with where each driver actually finished.
+    var pos = positions(race);
+    document.querySelectorAll('[data-race="' + race.id + '"] .pick').forEach(function (li) {
+      var code = li.getAttribute('data-code');
+      if (!code || !pos[code]) return;
+      var actualPos = pos[code];
+      var predPos = race.predicted.indexOf(code) + 1;
+      var v, text;
+      if (!/^\d+$/.test(actualPos)) {
+        v = 'miss'; text = 'DNF';
+      } else {
+        var delta = predPos - +actualPos;
+        v = delta === 0 ? 'hit' : Math.abs(delta) <= 2 ? 'near' : 'miss';
+        text = 'P' + actualPos + (delta === 0 ? '' : delta > 0 ? ' ▲' + delta : ' ▼' + (-delta));
+      }
+      var row = li.querySelector('.name-row');
+      if (row) row.appendChild(el('span', 'verdict ' + v + ' outcome', text));
+    });
+  });
+
+  // --- running track record ------------------------------------------------
+  if (scored.length) {
+    var n = scored.length;
+    var wins = scored.filter(function (x) { return x.s.winnerHit; }).length;
+    var mean = function (f) { return scored.reduce(function (t, x) { return t + f(x.s); }, 0) / n; };
+
+    document.getElementById('record-sub').textContent =
+      n + ' race' + (n === 1 ? '' : 's') + ' graded · computed from the published predictions, not edited after the fact';
+    document.getElementById('record-stats').innerHTML =
+      stat(Math.round((wins / n) * 100) + '%', 'Winner accuracy', wins + '/' + n + ' correct') +
+      stat(mean(function (s) { return s.podiumHits; }).toFixed(1) + '/3', 'Podium hits', 'mean per race') +
+      stat(mean(function (s) { return s.top5Hits; }).toFixed(1) + '/5', 'Top 5 hits', 'mean per race') +
+      stat(mean(function (s) { return s.brier; }).toFixed(3), 'Mean Brier', 'lower is better');
+
+    // Small samples make these numbers look far more meaningful than they are.
+    if (n < 5) {
+      var c = document.getElementById('record-caveat');
+      c.textContent = 'Only ' + n + ' graded race' + (n === 1 ? '' : 's') +
+        ' — this is far too small a sample to mean anything. One lucky or unlucky ' +
+        'result moves every number on this card. Treat it as a ledger that has started, not a hit rate.';
+      c.hidden = false;
+    }
+    document.getElementById('track-record').hidden = false;
+  }
+})();
+</script>
 </body>
 </html>
